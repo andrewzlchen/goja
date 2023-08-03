@@ -608,24 +608,8 @@ func (r *Runtime) object_hasOwn(call FunctionCall) Value {
 	}
 }
 
-func (r *Runtime) initObject() {
-	o := r.global.ObjectPrototype.self
-	o._putProp("toString", r.newNativeFunc(r.objectproto_toString, nil, "toString", nil, 0), true, false, true)
-	o._putProp("toLocaleString", r.newNativeFunc(r.objectproto_toLocaleString, nil, "toLocaleString", nil, 0), true, false, true)
-	o._putProp("valueOf", r.newNativeFunc(r.objectproto_valueOf, nil, "valueOf", nil, 0), true, false, true)
-	o._putProp("hasOwnProperty", r.newNativeFunc(r.objectproto_hasOwnProperty, nil, "hasOwnProperty", nil, 1), true, false, true)
-	o._putProp("isPrototypeOf", r.newNativeFunc(r.objectproto_isPrototypeOf, nil, "isPrototypeOf", nil, 1), true, false, true)
-	o._putProp("propertyIsEnumerable", r.newNativeFunc(r.objectproto_propertyIsEnumerable, nil, "propertyIsEnumerable", nil, 1), true, false, true)
-	o.defineOwnPropertyStr(__proto__, PropertyDescriptor{
-		Getter:       r.newNativeFunc(r.objectproto_getProto, nil, "get __proto__", nil, 0),
-		Setter:       r.newNativeFunc(r.objectproto_setProto, nil, "set __proto__", nil, 1),
-		Configurable: FLAG_TRUE,
-	}, true)
-	o._putProp("__defineSetter__", r.newNativeFunc(r.object_defineSetter, nil, "__defineSetter__", nil, 2), true, false, true)
-
-	r.global.Object = r.newNativeConstructOnly(nil, r.builtin_Object, r.global.ObjectPrototype, "Object", 1).val
-	r.global.ObjectPrototype.self._putProp("constructor", r.global.Object, true, false, true)
-	o = r.global.Object.self
+func (r *Runtime) createObject(val *Object) objectImpl {
+	o := r.newNativeConstructOnly(nil, r.builtin_Object, r.global.ObjectPrototype, "Object", 1).val.self
 	o._putProp("assign", r.newNativeFunc(r.object_assign, nil, "assign", nil, 2), true, false, true)
 	o._putProp("defineProperty", r.newNativeFunc(r.object_defineProperty, nil, "defineProperty", nil, 3), true, false, true)
 	o._putProp("defineProperties", r.newNativeFunc(r.object_defineProperties, nil, "defineProperties", nil, 2), true, false, true)
@@ -655,5 +639,25 @@ func (r *Runtime) initObject() {
 
 	o._putProp("entries", r.newNativeFunc(r.object_entries, nil, "entries", nil, 1), true, false, true)
 
+	return o
+}
+
+func (r *Runtime) initObject() {
+	o := r.global.ObjectPrototype.self
+	o._putProp("toString", r.newNativeFunc(r.objectproto_toString, nil, "toString", nil, 0), true, false, true)
+	o._putProp("toLocaleString", r.newNativeFunc(r.objectproto_toLocaleString, nil, "toLocaleString", nil, 0), true, false, true)
+	o._putProp("valueOf", r.newNativeFunc(r.objectproto_valueOf, nil, "valueOf", nil, 0), true, false, true)
+	o._putProp("hasOwnProperty", r.newNativeFunc(r.objectproto_hasOwnProperty, nil, "hasOwnProperty", nil, 1), true, false, true)
+	o._putProp("isPrototypeOf", r.newNativeFunc(r.objectproto_isPrototypeOf, nil, "isPrototypeOf", nil, 1), true, false, true)
+	o._putProp("propertyIsEnumerable", r.newNativeFunc(r.objectproto_propertyIsEnumerable, nil, "propertyIsEnumerable", nil, 1), true, false, true)
+	o.defineOwnPropertyStr(__proto__, PropertyDescriptor{
+		Getter:       r.newNativeFunc(r.objectproto_getProto, nil, "get __proto__", nil, 0),
+		Setter:       r.newNativeFunc(r.objectproto_setProto, nil, "set __proto__", nil, 1),
+		Configurable: FLAG_TRUE,
+	}, true)
+	o._putProp("__defineSetter__", r.newNativeFunc(r.object_defineSetter, nil, "__defineSetter__", nil, 2), true, false, true)
+
+	r.global.Object = r.newLazyObject(r.createObject)
+	r.global.ObjectPrototype.self._putProp("constructor", r.global.Object, true, false, true)
 	r.addToGlobal("Object", r.global.Object)
 }
