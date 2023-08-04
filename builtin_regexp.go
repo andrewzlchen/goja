@@ -1230,65 +1230,69 @@ func (r *Runtime) createRegExpStringIteratorPrototype(val *Object) objectImpl {
 	return o
 }
 
+func (r *Runtime) createRegexp(val *Object) objectImpl {
+	rx := r.newNativeFunc(r.builtin_RegExp, r.builtin_newRegExp, "RegExp", r.global.RegExpPrototype, 2).self
+	rx._putSym(SymSpecies, &valueProperty{
+		getterFunc:   r.newNativeFunc(r.returnThis, nil, "get [Symbol.species]", nil, 0),
+		accessor:     true,
+		configurable: true,
+	})
+	return rx
+}
+
 func (r *Runtime) initRegExp() {
 	o := r.newGuardedObject(r.global.ObjectPrototype, classObject)
 	r.global.RegExpPrototype = o.val
 	r.global.stdRegexpProto = o
 	r.global.RegExpStringIteratorPrototype = r.newLazyObject(r.createRegExpStringIteratorPrototype)
 
-	o._putProp("compile", r.newNativeFunc(r.regexpproto_compile, nil, "compile", nil, 2), true, false, true)
-	o._putProp("exec", r.newNativeFunc(r.regexpproto_exec, nil, "exec", nil, 1), true, false, true)
-	o._putProp("test", r.newNativeFunc(r.regexpproto_test, nil, "test", nil, 1), true, false, true)
-	o._putProp("toString", r.newNativeFunc(r.regexpproto_toString, nil, "toString", nil, 0), true, false, true)
+	o._putProp("compile", r.newLazyNativeFunc(r.regexpproto_compile, "compile", 2), true, false, true)
+	o._putProp("exec", r.newLazyNativeFunc(r.regexpproto_exec, "exec", 1), true, false, true)
+	o._putProp("test", r.newLazyNativeFunc(r.regexpproto_test, "test", 1), true, false, true)
+	o._putProp("toString", r.newLazyNativeFunc(r.regexpproto_toString, "toString", 0), true, false, true)
 	o.setOwnStr("source", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getSource, nil, "get source", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getSource, "get source", 0),
 		accessor:     true,
 	}, false)
 	o.setOwnStr("global", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getGlobal, nil, "get global", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getGlobal, "get global", 0),
 		accessor:     true,
 	}, false)
 	o.setOwnStr("multiline", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getMultiline, nil, "get multiline", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getMultiline, "get multiline", 0),
 		accessor:     true,
 	}, false)
 	o.setOwnStr("ignoreCase", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getIgnoreCase, nil, "get ignoreCase", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getIgnoreCase, "get ignoreCase", 0),
 		accessor:     true,
 	}, false)
 	o.setOwnStr("unicode", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getUnicode, nil, "get unicode", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getUnicode, "get unicode", 0),
 		accessor:     true,
 	}, false)
 	o.setOwnStr("sticky", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getSticky, nil, "get sticky", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getSticky, "get sticky", 0),
 		accessor:     true,
 	}, false)
 	o.setOwnStr("flags", &valueProperty{
 		configurable: true,
-		getterFunc:   r.newNativeFunc(r.regexpproto_getFlags, nil, "get flags", nil, 0),
+		getterFunc:   r.newLazyNativeFunc(r.regexpproto_getFlags, "get flags", 0),
 		accessor:     true,
 	}, false)
 
-	o._putSym(SymMatch, valueProp(r.newNativeFunc(r.regexpproto_stdMatcher, nil, "[Symbol.match]", nil, 1), true, false, true))
-	o._putSym(SymMatchAll, valueProp(r.newNativeFunc(r.regexpproto_stdMatcherAll, nil, "[Symbol.matchAll]", nil, 1), true, false, true))
-	o._putSym(SymSearch, valueProp(r.newNativeFunc(r.regexpproto_stdSearch, nil, "[Symbol.search]", nil, 1), true, false, true))
-	o._putSym(SymSplit, valueProp(r.newNativeFunc(r.regexpproto_stdSplitter, nil, "[Symbol.split]", nil, 2), true, false, true))
-	o._putSym(SymReplace, valueProp(r.newNativeFunc(r.regexpproto_stdReplacer, nil, "[Symbol.replace]", nil, 2), true, false, true))
+	o._putSym(SymMatch, valueProp(r.newLazyNativeFunc(r.regexpproto_stdMatcher, "[Symbol.match]", 1), true, false, true))
+	o._putSym(SymMatchAll, valueProp(r.newLazyNativeFunc(r.regexpproto_stdMatcherAll, "[Symbol.matchAll]", 1), true, false, true))
+	o._putSym(SymSearch, valueProp(r.newLazyNativeFunc(r.regexpproto_stdSearch, "[Symbol.search]", 1), true, false, true))
+	o._putSym(SymSplit, valueProp(r.newLazyNativeFunc(r.regexpproto_stdSplitter, "[Symbol.split]", 2), true, false, true))
+	o._putSym(SymReplace, valueProp(r.newLazyNativeFunc(r.regexpproto_stdReplacer, "[Symbol.replace]", 2), true, false, true))
 	o.guard("exec", "global", "multiline", "ignoreCase", "unicode", "sticky")
 
-	r.global.RegExp = r.newNativeFunc(r.builtin_RegExp, r.builtin_newRegExp, "RegExp", r.global.RegExpPrototype, 2)
-	rx := r.global.RegExp.self
-	rx._putSym(SymSpecies, &valueProperty{
-		getterFunc:   r.newNativeFunc(r.returnThis, nil, "get [Symbol.species]", nil, 0),
-		accessor:     true,
-		configurable: true,
-	})
+	r.global.RegExp = r.newLazyObject(r.createRegexp)
 	r.addToGlobal("RegExp", r.global.RegExp)
 }
