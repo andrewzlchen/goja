@@ -608,52 +608,57 @@ func (r *Runtime) object_hasOwn(call FunctionCall) Value {
 	}
 }
 
-func (r *Runtime) initObject() {
-	o := r.global.ObjectPrototype.self
-	o._putProp("toString", r.newNativeFunc(r.objectproto_toString, nil, "toString", nil, 0), true, false, true)
-	o._putProp("toLocaleString", r.newNativeFunc(r.objectproto_toLocaleString, nil, "toLocaleString", nil, 0), true, false, true)
-	o._putProp("valueOf", r.newNativeFunc(r.objectproto_valueOf, nil, "valueOf", nil, 0), true, false, true)
-	o._putProp("hasOwnProperty", r.newNativeFunc(r.objectproto_hasOwnProperty, nil, "hasOwnProperty", nil, 1), true, false, true)
-	o._putProp("isPrototypeOf", r.newNativeFunc(r.objectproto_isPrototypeOf, nil, "isPrototypeOf", nil, 1), true, false, true)
-	o._putProp("propertyIsEnumerable", r.newNativeFunc(r.objectproto_propertyIsEnumerable, nil, "propertyIsEnumerable", nil, 1), true, false, true)
-	o.defineOwnPropertyStr(__proto__, PropertyDescriptor{
-		Getter:       r.newNativeFunc(r.objectproto_getProto, nil, "get __proto__", nil, 0),
-		Setter:       r.newNativeFunc(r.objectproto_setProto, nil, "set __proto__", nil, 1),
-		Configurable: FLAG_TRUE,
-	}, true)
-	o._putProp("__defineSetter__", r.newNativeFunc(r.object_defineSetter, nil, "__defineSetter__", nil, 2), true, false, true)
-
-	r.global.Object = r.newNativeConstructOnly(nil, r.builtin_Object, r.global.ObjectPrototype, "Object", 1).val
+func (r *Runtime) createObject(val *Object) objectImpl {
+	o := r.newNativeConstructOnly(val, r.builtin_Object, r.global.ObjectPrototype, "Object", 1)
 	r.global.ObjectPrototype.self._putProp("constructor", r.global.Object, true, false, true)
-	o = r.global.Object.self
-	o._putProp("assign", r.newNativeFunc(r.object_assign, nil, "assign", nil, 2), true, false, true)
-	o._putProp("defineProperty", r.newNativeFunc(r.object_defineProperty, nil, "defineProperty", nil, 3), true, false, true)
-	o._putProp("defineProperties", r.newNativeFunc(r.object_defineProperties, nil, "defineProperties", nil, 2), true, false, true)
-	o._putProp("entries", r.newNativeFunc(r.object_entries, nil, "entries", nil, 1), true, false, true)
-	o._putProp("getOwnPropertyDescriptor", r.newNativeFunc(r.object_getOwnPropertyDescriptor, nil, "getOwnPropertyDescriptor", nil, 2), true, false, true)
-	o._putProp("getOwnPropertyDescriptors", r.newNativeFunc(r.object_getOwnPropertyDescriptors, nil, "getOwnPropertyDescriptors", nil, 1), true, false, true)
-	o._putProp("getPrototypeOf", r.newNativeFunc(r.object_getPrototypeOf, nil, "getPrototypeOf", nil, 1), true, false, true)
-	o._putProp("is", r.newNativeFunc(r.object_is, nil, "is", nil, 2), true, false, true)
-	o._putProp("getOwnPropertyNames", r.newNativeFunc(r.object_getOwnPropertyNames, nil, "getOwnPropertyNames", nil, 1), true, false, true)
-	o._putProp("getOwnPropertySymbols", r.newNativeFunc(r.object_getOwnPropertySymbols, nil, "getOwnPropertySymbols", nil, 1), true, false, true)
-	o._putProp("create", r.newNativeFunc(r.object_create, nil, "create", nil, 2), true, false, true)
-	o._putProp("seal", r.newNativeFunc(r.object_seal, nil, "seal", nil, 1), true, false, true)
-	o._putProp("freeze", r.newNativeFunc(r.object_freeze, nil, "freeze", nil, 1), true, false, true)
-	o._putProp("preventExtensions", r.newNativeFunc(r.object_preventExtensions, nil, "preventExtensions", nil, 1), true, false, true)
-	o._putProp("isSealed", r.newNativeFunc(r.object_isSealed, nil, "isSealed", nil, 1), true, false, true)
-	o._putProp("isFrozen", r.newNativeFunc(r.object_isFrozen, nil, "isFrozen", nil, 1), true, false, true)
-	o._putProp("isExtensible", r.newNativeFunc(r.object_isExtensible, nil, "isExtensible", nil, 1), true, false, true)
-	o._putProp("keys", r.newNativeFunc(r.object_keys, nil, "keys", nil, 1), true, false, true)
-	o._putProp("setPrototypeOf", r.newNativeFunc(r.object_setPrototypeOf, nil, "setPrototypeOf", nil, 2), true, false, true)
-	o._putProp("values", r.newNativeFunc(r.object_values, nil, "values", nil, 1), true, false, true)
-	o._putProp("fromEntries", r.newNativeFunc(r.object_fromEntries, nil, "fromEntries", nil, 1), true, false, true)
-	o._putProp("hasOwn", r.newNativeFunc(r.object_hasOwn, nil, "hasOwn", nil, 2), true, false, true)
 
-	entriesFunc := r.newNativeFunc(r.object_entries, nil, "entries", nil, 1)
+	o._putProp("assign", r.newLazyNativeFunc(r.object_assign, "assign", 2), true, false, true)
+	o._putProp("defineProperty", r.newLazyNativeFunc(r.object_defineProperty, "defineProperty", 3), true, false, true)
+	o._putProp("defineProperties", r.newLazyNativeFunc(r.object_defineProperties, "defineProperties", 2), true, false, true)
+	o._putProp("entries", r.newLazyNativeFunc(r.object_entries, "entries", 1), true, false, true)
+	o._putProp("getOwnPropertyDescriptor", r.newLazyNativeFunc(r.object_getOwnPropertyDescriptor, "getOwnPropertyDescriptor", 2), true, false, true)
+	o._putProp("getOwnPropertyDescriptors", r.newLazyNativeFunc(r.object_getOwnPropertyDescriptors, "getOwnPropertyDescriptors", 1), true, false, true)
+	o._putProp("getPrototypeOf", r.newLazyNativeFunc(r.object_getPrototypeOf, "getPrototypeOf", 1), true, false, true)
+	o._putProp("is", r.newLazyNativeFunc(r.object_is, "is", 2), true, false, true)
+	o._putProp("getOwnPropertyNames", r.newLazyNativeFunc(r.object_getOwnPropertyNames, "getOwnPropertyNames", 1), true, false, true)
+	o._putProp("getOwnPropertySymbols", r.newLazyNativeFunc(r.object_getOwnPropertySymbols, "getOwnPropertySymbols", 1), true, false, true)
+	o._putProp("create", r.newLazyNativeFunc(r.object_create, "create", 2), true, false, true)
+	o._putProp("seal", r.newLazyNativeFunc(r.object_seal, "seal", 1), true, false, true)
+	o._putProp("freeze", r.newLazyNativeFunc(r.object_freeze, "freeze", 1), true, false, true)
+	o._putProp("preventExtensions", r.newLazyNativeFunc(r.object_preventExtensions, "preventExtensions", 1), true, false, true)
+	o._putProp("isSealed", r.newLazyNativeFunc(r.object_isSealed, "isSealed", 1), true, false, true)
+	o._putProp("isFrozen", r.newLazyNativeFunc(r.object_isFrozen, "isFrozen", 1), true, false, true)
+	o._putProp("isExtensible", r.newLazyNativeFunc(r.object_isExtensible, "isExtensible", 1), true, false, true)
+	o._putProp("keys", r.newLazyNativeFunc(r.object_keys, "keys", 1), true, false, true)
+	o._putProp("setPrototypeOf", r.newLazyNativeFunc(r.object_setPrototypeOf, "setPrototypeOf", 2), true, false, true)
+	o._putProp("values", r.newLazyNativeFunc(r.object_values, "values", 1), true, false, true)
+	o._putProp("fromEntries", r.newLazyNativeFunc(r.object_fromEntries, "fromEntries", 1), true, false, true)
+	o._putProp("hasOwn", r.newLazyNativeFunc(r.object_hasOwn, "hasOwn", 2), true, false, true)
+
+	entriesFunc := r.newLazyNativeFunc(r.object_entries, "entries", 1)
 	o._putSym(SymIterator, valueProp(entriesFunc, true, false, true))
 	o._putSym(SymToStringTag, valueProp(asciiString(classObject), false, false, true))
 
-	o._putProp("entries", r.newNativeFunc(r.object_entries, nil, "entries", nil, 1), true, false, true)
+	o._putProp("entries", r.newLazyNativeFunc(r.object_entries, "entries", 1), true, false, true)
 
+	return o
+}
+
+func (r *Runtime) initObject() {
+	proto := r.global.ObjectPrototype
+	proto.self._putProp("toString", r.newLazyNativeFunc(r.objectproto_toString, "toString", 0), true, false, true)
+	proto.self._putProp("toLocaleString", r.newLazyNativeFunc(r.objectproto_toLocaleString, "toLocaleString", 0), true, false, true)
+	proto.self._putProp("valueOf", r.newLazyNativeFunc(r.objectproto_valueOf, "valueOf", 0), true, false, true)
+	proto.self._putProp("hasOwnProperty", r.newLazyNativeFunc(r.objectproto_hasOwnProperty, "hasOwnProperty", 1), true, false, true)
+	proto.self._putProp("isPrototypeOf", r.newLazyNativeFunc(r.objectproto_isPrototypeOf, "isPrototypeOf", 1), true, false, true)
+	proto.self._putProp("propertyIsEnumerable", r.newLazyNativeFunc(r.objectproto_propertyIsEnumerable, "propertyIsEnumerable", 1), true, false, true)
+	proto.self.defineOwnPropertyStr(__proto__, PropertyDescriptor{
+		Getter:       r.newLazyNativeFunc(r.objectproto_getProto, "get __proto__", 0),
+		Setter:       r.newLazyNativeFunc(r.objectproto_setProto, "set __proto__", 1),
+		Configurable: FLAG_TRUE,
+	}, true)
+	proto.self._putProp("__defineSetter__", r.newLazyNativeFunc(r.object_defineSetter, "__defineSetter__", 2), true, false, true)
+
+	r.global.Object = r.newLazyObject(r.createObject)
 	r.addToGlobal("Object", r.global.Object)
 }
