@@ -1,11 +1,12 @@
 package goja
 
 import (
-	"github.com/dop251/goja/unistring"
 	"math"
 	"strings"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/dop251/goja/unistring"
 
 	"github.com/dop251/goja/parser"
 	"golang.org/x/text/collate"
@@ -955,57 +956,67 @@ func (r *Runtime) getStringIteratorPrototype() *Object {
 	return o
 }
 
+func (r *Runtime) createString(val *Object) objectImpl {
+	o := r.newNativeFunc(r.builtin_String, r.builtin_newString, "String", r.global.StringPrototype, 1).self
+	o._putProp("fromCharCode", r.newLazyNativeFunc(r.string_fromcharcode, "fromCharCode", 1), true, false, true)
+	o._putProp("fromCodePoint", r.newLazyNativeFunc(r.string_fromcodepoint, "fromCodePoint", 1), true, false, true)
+	o._putProp("raw", r.newLazyNativeFunc(r.string_raw, "raw", 1), true, false, true)
+
+	return o
+}
+
 func (r *Runtime) initString() {
 	r.global.StringPrototype = r.builtin_newString([]Value{stringEmpty}, r.global.ObjectPrototype)
 
 	o := r.global.StringPrototype.self
-	o._putProp("at", r.newNativeFunc(r.stringproto_at, nil, "at", nil, 1), true, false, true)
-	o._putProp("charAt", r.newNativeFunc(r.stringproto_charAt, nil, "charAt", nil, 1), true, false, true)
-	o._putProp("charCodeAt", r.newNativeFunc(r.stringproto_charCodeAt, nil, "charCodeAt", nil, 1), true, false, true)
-	o._putProp("codePointAt", r.newNativeFunc(r.stringproto_codePointAt, nil, "codePointAt", nil, 1), true, false, true)
-	o._putProp("concat", r.newNativeFunc(r.stringproto_concat, nil, "concat", nil, 1), true, false, true)
-	o._putProp("endsWith", r.newNativeFunc(r.stringproto_endsWith, nil, "endsWith", nil, 1), true, false, true)
-	o._putProp("includes", r.newNativeFunc(r.stringproto_includes, nil, "includes", nil, 1), true, false, true)
-	o._putProp("indexOf", r.newNativeFunc(r.stringproto_indexOf, nil, "indexOf", nil, 1), true, false, true)
-	o._putProp("lastIndexOf", r.newNativeFunc(r.stringproto_lastIndexOf, nil, "lastIndexOf", nil, 1), true, false, true)
-	o._putProp("localeCompare", r.newNativeFunc(r.stringproto_localeCompare, nil, "localeCompare", nil, 1), true, false, true)
-	o._putProp("match", r.newNativeFunc(r.stringproto_match, nil, "match", nil, 1), true, false, true)
-	o._putProp("matchAll", r.newNativeFunc(r.stringproto_matchAll, nil, "matchAll", nil, 1), true, false, true)
-	o._putProp("normalize", r.newNativeFunc(r.stringproto_normalize, nil, "normalize", nil, 0), true, false, true)
-	o._putProp("padEnd", r.newNativeFunc(r.stringproto_padEnd, nil, "padEnd", nil, 1), true, false, true)
-	o._putProp("padStart", r.newNativeFunc(r.stringproto_padStart, nil, "padStart", nil, 1), true, false, true)
-	o._putProp("repeat", r.newNativeFunc(r.stringproto_repeat, nil, "repeat", nil, 1), true, false, true)
-	o._putProp("replace", r.newNativeFunc(r.stringproto_replace, nil, "replace", nil, 2), true, false, true)
-	o._putProp("search", r.newNativeFunc(r.stringproto_search, nil, "search", nil, 1), true, false, true)
-	o._putProp("slice", r.newNativeFunc(r.stringproto_slice, nil, "slice", nil, 2), true, false, true)
-	o._putProp("split", r.newNativeFunc(r.stringproto_split, nil, "split", nil, 2), true, false, true)
-	o._putProp("startsWith", r.newNativeFunc(r.stringproto_startsWith, nil, "startsWith", nil, 1), true, false, true)
-	o._putProp("substring", r.newNativeFunc(r.stringproto_substring, nil, "substring", nil, 2), true, false, true)
-	o._putProp("toLocaleLowerCase", r.newNativeFunc(r.stringproto_toLowerCase, nil, "toLocaleLowerCase", nil, 0), true, false, true)
-	o._putProp("toLocaleUpperCase", r.newNativeFunc(r.stringproto_toUpperCase, nil, "toLocaleUpperCase", nil, 0), true, false, true)
-	o._putProp("toLowerCase", r.newNativeFunc(r.stringproto_toLowerCase, nil, "toLowerCase", nil, 0), true, false, true)
-	o._putProp("toString", r.newNativeFunc(r.stringproto_toString, nil, "toString", nil, 0), true, false, true)
-	o._putProp("toUpperCase", r.newNativeFunc(r.stringproto_toUpperCase, nil, "toUpperCase", nil, 0), true, false, true)
-	o._putProp("trim", r.newNativeFunc(r.stringproto_trim, nil, "trim", nil, 0), true, false, true)
-	trimEnd := r.newNativeFunc(r.stringproto_trimEnd, nil, "trimEnd", nil, 0)
-	trimStart := r.newNativeFunc(r.stringproto_trimStart, nil, "trimStart", nil, 0)
+	o._putProp("at", r.newLazyNativeFunc(r.stringproto_at, "at", 1), true, false, true)
+	o._putProp("charAt", r.newLazyNativeFunc(r.stringproto_charAt, "charAt", 1), true, false, true)
+	o._putProp("charCodeAt", r.newLazyNativeFunc(r.stringproto_charCodeAt, "charCodeAt", 1), true, false, true)
+	o._putProp("codePointAt", r.newLazyNativeFunc(r.stringproto_codePointAt, "codePointAt", 1), true, false, true)
+	o._putProp("concat", r.newLazyNativeFunc(r.stringproto_concat, "concat", 1), true, false, true)
+	o._putProp("endsWith", r.newLazyNativeFunc(r.stringproto_endsWith, "endsWith", 1), true, false, true)
+	o._putProp("includes", r.newLazyNativeFunc(r.stringproto_includes, "includes", 1), true, false, true)
+	o._putProp("indexOf", r.newLazyNativeFunc(r.stringproto_indexOf, "indexOf", 1), true, false, true)
+	o._putProp("lastIndexOf", r.newLazyNativeFunc(r.stringproto_lastIndexOf, "lastIndexOf", 1), true, false, true)
+	o._putProp("localeCompare", r.newLazyNativeFunc(r.stringproto_localeCompare, "localeCompare", 1), true, false, true)
+	o._putProp("match", r.newLazyNativeFunc(r.stringproto_match, "match", 1), true, false, true)
+	o._putProp("matchAll", r.newLazyNativeFunc(r.stringproto_matchAll, "matchAll", 1), true, false, true)
+	o._putProp("normalize", r.newLazyNativeFunc(r.stringproto_normalize, "normalize", 0), true, false, true)
+	o._putProp("padEnd", r.newLazyNativeFunc(r.stringproto_padEnd, "padEnd", 1), true, false, true)
+	o._putProp("padStart", r.newLazyNativeFunc(r.stringproto_padStart, "padStart", 1), true, false, true)
+	o._putProp("repeat", r.newLazyNativeFunc(r.stringproto_repeat, "repeat", 1), true, false, true)
+	o._putProp("replace", r.newLazyNativeFunc(r.stringproto_replace, "replace", 2), true, false, true)
+	o._putProp("search", r.newLazyNativeFunc(r.stringproto_search, "search", 1), true, false, true)
+	o._putProp("slice", r.newLazyNativeFunc(r.stringproto_slice, "slice", 2), true, false, true)
+	o._putProp("split", r.newLazyNativeFunc(r.stringproto_split, "split", 2), true, false, true)
+	o._putProp("startsWith", r.newLazyNativeFunc(r.stringproto_startsWith, "startsWith", 1), true, false, true)
+	o._putProp("substring", r.newLazyNativeFunc(r.stringproto_substring, "substring", 2), true, false, true)
+	o._putProp("toLocaleLowerCase", r.newLazyNativeFunc(r.stringproto_toLowerCase, "toLocaleLowerCase", 0), true, false, true)
+	o._putProp("toLocaleUpperCase", r.newLazyNativeFunc(r.stringproto_toUpperCase, "toLocaleUpperCase", 0), true, false, true)
+	o._putProp("toLowerCase", r.newLazyNativeFunc(r.stringproto_toLowerCase, "toLowerCase", 0), true, false, true)
+	o._putProp("toString", r.newLazyNativeFunc(r.stringproto_toString, "toString", 0), true, false, true)
+	o._putProp("toUpperCase", r.newLazyNativeFunc(r.stringproto_toUpperCase, "toUpperCase", 0), true, false, true)
+	o._putProp("trim", r.newLazyNativeFunc(r.stringproto_trim, "trim", 0), true, false, true)
+	trimEnd := r.newLazyNativeFunc(r.stringproto_trimEnd, "trimEnd", 0)
+	trimStart := r.newLazyNativeFunc(r.stringproto_trimStart, "trimStart", 0)
 	o._putProp("trimEnd", trimEnd, true, false, true)
 	o._putProp("trimStart", trimStart, true, false, true)
 	o._putProp("trimRight", trimEnd, true, false, true)
 	o._putProp("trimLeft", trimStart, true, false, true)
-	o._putProp("valueOf", r.newNativeFunc(r.stringproto_valueOf, nil, "valueOf", nil, 0), true, false, true)
+	o._putProp("valueOf", r.newLazyNativeFunc(r.stringproto_valueOf, "valueOf", 0), true, false, true)
 
-	o._putSym(SymIterator, valueProp(r.newNativeFunc(r.stringproto_iterator, nil, "[Symbol.iterator]", nil, 0), true, false, true))
+	o._putSym(SymIterator, valueProp(r.newLazyNativeFunc(r.stringproto_iterator, "[Symbol.iterator]", 0), true, false, true))
 
 	// Annex B
-	o._putProp("substr", r.newNativeFunc(r.stringproto_substr, nil, "substr", nil, 2), true, false, true)
+	o._putProp("substr", r.newLazyNativeFunc(r.stringproto_substr, "substr", 2), true, false, true)
 
 	r.global.String = r.newNativeFunc(r.builtin_String, r.builtin_newString, "String", r.global.StringPrototype, 1)
 	o = r.global.String.self
-	o._putProp("fromCharCode", r.newNativeFunc(r.string_fromcharcode, nil, "fromCharCode", nil, 1), true, false, true)
-	o._putProp("fromCodePoint", r.newNativeFunc(r.string_fromcodepoint, nil, "fromCodePoint", nil, 1), true, false, true)
-	o._putProp("raw", r.newNativeFunc(r.string_raw, nil, "raw", nil, 1), true, false, true)
+	o._putProp("fromCharCode", r.newLazyNativeFunc(r.string_fromcharcode, "fromCharCode", 1), true, false, true)
+	o._putProp("fromCodePoint", r.newLazyNativeFunc(r.string_fromcodepoint, "fromCodePoint", 1), true, false, true)
+	o._putProp("raw", r.newLazyNativeFunc(r.string_raw, "raw", 1), true, false, true)
 
+	r.global.String = r.newLazyObject(r.createString)
 	r.addToGlobal("String", r.global.String)
 
 	r.stringSingleton = r.builtin_new(r.global.String, nil).self.(*stringObject)
