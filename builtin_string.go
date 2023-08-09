@@ -952,14 +952,6 @@ func (r *Runtime) createStringIterProto(val *Object) objectImpl {
 	return o
 }
 
-func (r *Runtime) createString(val *Object) objectImpl {
-	o := r.newNativeFunc(r.builtin_String, r.builtin_newString, "String", r.global.StringPrototype, 1).self
-	o._putProp("fromCharCode", r.newNativeFunc(r.string_fromcharcode, nil, "fromCharCode", nil, 1), true, false, true)
-	o._putProp("fromCodePoint", r.newNativeFunc(r.string_fromcodepoint, nil, "fromCodePoint", nil, 1), true, false, true)
-	o._putProp("raw", r.newNativeFunc(r.string_raw, nil, "raw", nil, 1), true, false, true)
-	return o
-}
-
 func (r *Runtime) initString() {
 	r.global.StringIteratorPrototype = r.newLazyObject(r.createStringIterProto)
 	r.global.StringPrototype = r.builtin_newString([]Value{stringEmpty}, r.global.ObjectPrototype)
@@ -1006,7 +998,12 @@ func (r *Runtime) initString() {
 	// Annex B
 	o._putProp("substr", r.newLazyNativeFunc(r.stringproto_substr, "substr", 2), true, false, true)
 
-	r.global.String = r.newLazyObject(r.createString)
+	r.global.String = r.newNativeFunc(r.builtin_String, r.builtin_newString, "String", r.global.StringPrototype, 1)
+	o = r.global.String.self
+	o._putProp("fromCharCode", r.newNativeFunc(r.string_fromcharcode, nil, "fromCharCode", nil, 1), true, false, true)
+	o._putProp("fromCodePoint", r.newNativeFunc(r.string_fromcodepoint, nil, "fromCodePoint", nil, 1), true, false, true)
+	o._putProp("raw", r.newNativeFunc(r.string_raw, nil, "raw", nil, 1), true, false, true)
+
 	r.addToGlobal("String", r.global.String)
 
 	r.stringSingleton = r.builtin_new(r.global.String, nil).self.(*stringObject)
