@@ -818,6 +818,12 @@ func (r *Runtime) newNativeFuncAndConstruct(v *Object, call func(call FunctionCa
 	return f
 }
 
+func (r *Runtime) newLazyNativeFunc(call func(FunctionCall) Value, name unistring.String, length int) *Object {
+	return r.newLazyObject(func(o *Object) objectImpl {
+		return r.newNativeFunc(call, nil, name, nil, length).self
+	})
+}
+
 func (r *Runtime) newNativeFunc(call func(FunctionCall) Value, construct func(args []Value, proto *Object) *Object, name unistring.String, proto *Object, length int) *Object {
 	v := &Object{runtime: r}
 
